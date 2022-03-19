@@ -1,0 +1,64 @@
+void osc_Send()
+{
+  for(int i = 0; i < recordkeys-1; i++)
+  {
+    Mpos.add(pos[i]);
+    MDtime.add(Dtime[i]);
+  }
+  Mpos.add(pos[recordkeys-1]);
+  for(int i = 0; i < 13; i++)
+  {
+    Mplaytime.add(playtimedata[i]);
+  }
+
+  oscP5.send(Mpos, Netaddresslist);
+  oscP5.send(MDtime, Netaddresslist);
+  oscP5.send(Mplaytime, Netaddresslist);
+  println("The data has been sent.");
+}
+
+void oscEvent(OscMessage theOscMessage)
+{
+  if(theOscMessage.addrPattern().equals(ConnectPattern))
+  {
+    connect(theOscMessage.netAddress().address());
+  }
+  else if(theOscMessage.addrPattern().equals(DisconnectPattern))
+  {
+    disconnect(theOscMessage.netAddress().address());
+  }
+  else
+  {
+    oscP5.send(theOscMessage, Netaddresslist);
+  }
+}
+
+void connect(String theIPaddress)
+{
+   if (!Netaddresslist.contains(theIPaddress, BroadcastPort))
+   {
+     Netaddresslist.add(theIPaddress, BroadcastPort);
+     println("### adding "+theIPaddress+" to the list.");
+     OscMessage Recordkeys = new OscMessage("/recordkeys");
+     oscP5.send(Recordkeys, Netaddresslist);
+   }
+   else
+   {
+     println("### "+theIPaddress+" is already connected.");
+   }
+   println("### currently there are "+Netaddresslist.list().size()+" remote locations connected.");
+}
+
+void disconnect(String theIPaddress)
+{
+  if (Netaddresslist.contains(theIPaddress, BroadcastPort))
+  {
+    Netaddresslist.remove(theIPaddress, BroadcastPort);
+    println("### removing "+theIPaddress+" from the list.");
+  }
+  else
+  {
+    println("### "+theIPaddress+" is not connected.");
+  }
+    println("### currently there are "+Netaddresslist.list().size());
+}
